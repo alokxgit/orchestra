@@ -14,6 +14,7 @@ type ChatConfig struct {
 	MaxToken int
 }
 
+
 type Prompt struct {
 	Text string
 	Image string
@@ -26,7 +27,6 @@ type Prompt struct {
 type Agent interface {
 	Invoke(prompt *Prompt,Memory any, cfg *ChatConfig, ctx context )
 }
-
 type Client struct {
 	Gemini genai.Client
 	Anthropic anthropic.Client
