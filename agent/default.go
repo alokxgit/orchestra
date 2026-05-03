@@ -6,11 +6,11 @@ import (
 	"github.com/anthropics/anthropic-sdk-go"
 )
 
-type AnthropicAdaptor struct {
+type DefaultAdaptor struct {
 	Client anthropic.Client
 }
 
-func (a *AnthropicAdaptor) Invoke(prompt Prompt, history ChatHistory, cfg *ChatConfig,ctx context.Context) (*Res,error) {
+func (a *DefaultAdaptor) Invoke(prompt Prompt, history ChatHistory, cfg *ChatConfig,ctx context.Context) (*Res,error) {
 
 	content := map[string]string{"text":prompt.Text,"image":prompt.Image,"clipboard":prompt.Clipboard}
 	

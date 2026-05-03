@@ -5,6 +5,9 @@ import (
 	"fmt"
 
 	"github.com/anthropics/anthropic-sdk-go"
+	"github.com/anthropics/anthropic-sdk-go/option"
+	"github.com/openai/openai-go/v3"
+	openaiOption "github.com/openai/openai-go/v3/option"
 	"google.golang.org/genai"
 )
 
@@ -18,23 +21,35 @@ type ChatConfig struct {
 type Prompt struct {
 	Text string
 	Image string
-	Audio string
-	Video string
 	Clipboard string
 }
 
+type Message struct {
+	Role string
+	Content Content
+}
+type Content map[string]string
+type ChatHistory []Message
 
+type ResMessageType struct {
+	Anthropic *anthropic.Message
+	Gemini *genai.GenerateContentResponse
+	Openai *openai.ChatCompletion
+}
+type Res struct {
+	Content ResMessageType
+	Error error
+}
 type Agent interface {
-	Invoke(prompt *Prompt,Memory any, cfg *ChatConfig, ctx context )
+	Invoke(prompt Prompt,history ChatHistory, cfg *ChatConfig, ctx context.Context ) (*Res,error)
 }
 type Client struct {
 	Gemini genai.Client
 	Anthropic anthropic.Client
+	Openai openai.Client
 }
 
-type Adaptor struct {
-	Client Client
-}
+
 
 type Provider string
 const (
@@ -46,17 +61,18 @@ const (
 func New(provider Provider, api_key string) Agent {
 	switch provider {
 	case Gemini:
-		return newGemini(api_key)
+		return initGemini(api_key)
 	case Anthropic:
-		return newAnthropic(api_key)
+		return initAnthropic(api_key)
 	case OpenAi:
-		return newOpenai(api_key)
+		return initOpenai(api_key)
 	default:
-		return Agent{}
+		return &DefaultAdaptor{}
 	}
 }
 
-func newGemini(api_key string) Agent {
+// initialises gemini client
+func initGemini(api_key string) Agent {
 
 	cc := genai.ClientConfig{
 		APIKey: api_key,
@@ -66,12 +82,31 @@ func newGemini(api_key string) Agent {
 	client, err := genai.NewClient(ctx, &cc)
 	if err != nil {
 		fmt.Println("-----------------Error while init-------------", err)
-		return &Adaptor{}
 	}
 
-	adaptor := Adaptor{
-		Client : Client{Gemini: *client},
+	adaptor := GeminiAdaptor{
+		Client :  *client,
 	}
 
+	return &adaptor
+}
+
+// initialises anthropic client
+func initAnthropic(api_key string) Agent {
+	client := anthropic.NewClient(option.WithAPIKey(api_key))
+	
+	adaptor := AnthropicAdaptor{
+		Client: client,
+	}
+	return &adaptor
+}
+
+// initialises openai Client
+func initOpenai(api_key string) Agent {
+
+	client := openai.NewClient(openaiOption.WithAPIKey(api_key))
+	adaptor := OpenaiAdaptor {
+		Client: client,
+	}
 	return &adaptor
 }
