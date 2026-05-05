@@ -35,6 +35,7 @@ type ResMessageType struct {
 	Anthropic *anthropic.Message
 	Gemini *genai.GenerateContentResponse
 	Openai *openai.ChatCompletion
+	Groq *openai.ChatCompletion
 }
 type Res struct {
 	Content ResMessageType
@@ -56,6 +57,7 @@ const (
 	Gemini Provider = "gemini"
 	Anthropic Provider = "anthropic"
 	OpenAi Provider = "openai"
+	Groq Provider = "groq"
 )
 
 func New(provider Provider, api_key string) Agent {
@@ -66,6 +68,8 @@ func New(provider Provider, api_key string) Agent {
 		return initAnthropic(api_key)
 	case OpenAi:
 		return initOpenai(api_key)
+	case Groq:
+		return initGroq(api_key)
 	default:
 		return &DefaultAdaptor{}
 	}
@@ -105,6 +109,17 @@ func initAnthropic(api_key string) Agent {
 func initOpenai(api_key string) Agent {
 
 	client := openai.NewClient(openaiOption.WithAPIKey(api_key))
+	adaptor := OpenaiAdaptor {
+		Client: client,
+	}
+	return &adaptor
+}
+
+
+// initialises groq 
+func initGroq(api_key string) Agent {
+
+	client := openai.NewClient(openaiOption.WithAPIKey(api_key), openaiOption.WithBaseURL("https://api.groq.com/openai/v1"))
 	adaptor := OpenaiAdaptor {
 		Client: client,
 	}

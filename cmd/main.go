@@ -9,9 +9,9 @@ import (
 
 func main() {
 	
-	Agent := agent.New("gemini","AIzaSyAUOBeDoSQyG66gCq7Vfwo5I1rGVwifsKA")
+	Agent := agent.New("groq","api_key")
 	cfg := agent.ChatConfig {
-		Model: "gemini-2.0-flash-lite",
+		Model: "llama-3.3-70b-versatile",
 		MaxToken: 200,
 		SystemPrompt: "Hello",
 	}
@@ -29,6 +29,5 @@ func main() {
 		fmt.Println("error",err)
 		return
 	}
-	fmt.Println(res)
+	fmt.Println(res.Content.Openai.Choices[0].Message.Content)
 }
-
